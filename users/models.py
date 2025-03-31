@@ -10,9 +10,10 @@ class Profile(models.Model):
     def __str__(self):
         return f'{self.user.username} Profile'
 
-    def save(self):
-        super().save()
+    def save(self, *args, **kwargs):  # Accept *args and **kwargs
+        super().save(*args, **kwargs)  # Call the original save method
 
+        # Resize the image
         img = Image.open(self.image.path)
 
         if img.height > 300 or img.width > 300:

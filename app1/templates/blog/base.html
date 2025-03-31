@@ -52,6 +52,7 @@
 
     <main role="main" class="container">
       <div class="row">
+        <!-- Main Content -->
         <div class="col-md-8">
           {% if messages %}
             {% for message in messages %}
@@ -60,21 +61,28 @@
               </div>
             {% endfor %}
           {% endif %}
-          {% block content %}{% endblock %}
+          {% block content %}{% endblock content %}
         </div>
 
+        <!-- Sidebar -->
         <div class="col-md-4">
-          <div class="content-section">
-            <h3>Our Sidebar</h3>
-            <p class='text-muted'>You can put any information here you'd like.
-              <ul class="list-group">
-                <li class="list-group-item list-group-item-light">Latest Posts</li>
-                <li class="list-group-item list-group-item-light">Announcements</li>
-                <li class="list-group-item list-group-item-light">Calendars</li>
-                <li class="list-group-item list-group-item-light">etc</li>
-              </ul>
-            </p>
-          </div>
+          {% if user.is_authenticated %}
+            <div class="card mt-4">
+              <img class="card-img-top rounded-circle mx-auto mt-3" 
+                   style="width: 100px;" 
+                   src="{{ user.profile.image.url }}" 
+                   alt="Profile Picture">
+              <div class="card-body text-center">
+                <h5 class="card-title">{{ user.username }}</h5>
+                <p class="card-text">Welcome back, {{ user.first_name }}!</p>
+                <a href="{% url 'profile' %}" class="btn btn-primary">View Profile</a>
+              </div>
+            </div>
+          {% else %}
+            <div class="alert alert-info mt-4">
+              <p>You are not logged in. <a href="{% url 'login' %}">Log in</a> to view your profile.</p>
+            </div>
+          {% endif %}
         </div>
       </div>
     </main>

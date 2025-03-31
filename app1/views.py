@@ -1,14 +1,12 @@
 from typing import Any
 from django.db.models.query import QuerySet
-from django.shortcuts import render,get_object_or_404
+from django.shortcuts import render,get_object_or_404,redirect
 from django.contrib.auth.mixins import LoginRequiredMixin,UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from .models import Post
 from django.views.generic import ListView ,DetailView ,CreateView, UpdateView, DeleteView
-# Create your views here.
-
-
+from django.contrib.auth.decorators import login_required
 
 
 def home(request):
@@ -23,6 +21,12 @@ class PostListView(ListView):
     context_object_name ='posts'
     paginate_by = 5
     ordering =['-date_posted']
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')  # Get search query from URL
+        if query:
+            return Post.objects.filter(title__icontains=query).order_by('-date_posted')
+        return Post.objects.all().order_by('-date_posted')
 
 class UserPostListView(ListView):
     model = Post
@@ -43,7 +47,7 @@ class PostDetailView(DetailView):
     
 class PostCreateView(LoginRequiredMixin,CreateView):
     model = Post
-    fields = ['title','content']
+    fields = ['title','content','image']
     template_name = 'blog/post_form.html'
 
     def form_valid(self ,form):
@@ -52,7 +56,7 @@ class PostCreateView(LoginRequiredMixin,CreateView):
     
 class PostUpdateView(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
     model = Post
-    fields = ['title','content']
+    fields = ['title','content','image']
     template_name = 'blog/post_form.html'
 
     def form_valid(self ,form):
@@ -76,6 +80,22 @@ class PostDeleteView(LoginRequiredMixin,UserPassesTestMixin,DeleteView):
         if self.request.user == post.author:
             return True
         return False
+    
+
+@login_required
+def like_post(request, post_id):
+    # Get the post object by id
+    post = get_object_or_404(Post, id=post_id)
+
+    # Toggle the like status
+    if request.user in post.likes.all():
+        post.likes.remove(request.user)  # If user already liked, remove like
+    else:
+        post.likes.add(request.user)  # If user has not liked, add like
+
+    # Redirect back to the post detail page
+    return redirect('post-detail', pk=post.id)
+
 
 def about(request):
     return render(request,'blog/about.html',{'title':'About'})

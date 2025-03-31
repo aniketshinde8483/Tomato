@@ -1,11 +1,15 @@
 {% extends "blog/base.html" %}
+
 {% block content %}
   <article class="media content-section">
+    <!-- Author Profile Image -->
     <img class="rounded-circle article-img" src="{{ object.author.profile.image.url }}">
     <div class="media-body">
       <div class="article-metadata">
         <a class="mr-2" href="{% url 'user-posts' object.author.username %}">{{ object.author }}</a>
         <small class="text-muted">{{ object.date_posted|date:"F d, Y" }}</small>
+        
+        <!-- Edit and Delete Buttons -->
         {% if object.author == user %}
           <div>
             <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{% url 'post-update' object.id %}">Update</a>
@@ -13,8 +17,30 @@
           </div>
         {% endif %}
       </div>
+      
+      <!-- Post Title -->
       <h2 class="article-title">{{ object.title }}</h2>
+      
+      <!-- Post Image (if uploaded) -->
+      {% if object.image %}
+        <img class="img-fluid mb-3" src="{{ object.image.url }}" alt="Post Image">
+      {% endif %}
+      
+      <!-- Post Content -->
       <p class="article-content">{{ object.content }}</p>
+
+      <!-- Like Button Form -->
+      <form action="{% url 'like-post' object.id %}" method="POST">
+        {% csrf_token %}
+        {% if user in object.likes.all %}
+          <button class="btn btn-danger" type="submit">Unlike</button>
+        {% else %}
+          <button class="btn btn-primary" type="submit">Like</button>
+        {% endif %}
+      </form>
+
+      <!-- Total Likes -->
+      <p>{{ object.total_likes }} people like this post.</p>
     </div>
   </article>
 {% endblock content %}
